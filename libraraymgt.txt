@@ -1,0 +1,582 @@
+1.models.py
+=========
+from django.db import models
+from multiselectfield import MultiSelectField
+MY_CHOICES = [('Py', 'Python'),
+              ('Dj', 'Django'),
+              ('MySql', 'MySql'),
+              ('RestApi', 'RestApi'),
+              ('HTML5', 'HTML5'),
+              ('CSS5','CSS5'),
+              ('MongoDB','MongoDB')
+              ]
+
+class BookDetails(models.Model):
+     
+    Id=models.IntegerField()
+    Book_Name=models.CharField(max_length=50)
+    Author_Name=models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.Book_Name
+
+class Student_Data(models.Model):
+    GENDER_CHOICES = (('M', 'Male'), ('F', 'Female'), ('U', 'Unisex/Parody'))
+    Gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+    Id=models.IntegerField()
+    Student_Name=models.CharField(max_length=50)
+    Gender = models.CharField(max_length=1,choices=GENDER_CHOICES,default='Male')
+    Branch=models.CharField(max_length=50)
+    User=models.CharField(max_length=50)
+    Password=models.CharField(max_length=20)
+    Password2=models.CharField(max_length=20)
+
+
+forms.py
+========
+from django import forms
+from .models import BookDetails,Student_Data
+from django.core import validators
+class BooksForm(forms.Form):
+    Id=forms.IntegerField()
+    Book_Name=forms.CharField(max_length=30)
+    Author_Name=forms.CharField(max_length=30)
+
+class StudentForm(forms.Form):
+    GENDER_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female')
+     )
+    
+    Id=forms.IntegerField()
+    Student_Name=forms.CharField(max_length=50)
+    # class Meta:
+    #     model=Student_Data
+    #     fields=['Gender']
+    # Gender=forms.CharField(
+    #     label='Gender',
+    #     widget=forms.CharField(
+    #         attrs={
+    #             'class':'form-control',
+    #             'placeholder':'select your gender'
+    #             choices=GENDER_CHOICES,
+    #         }
+    #     )
+    # )
+    Gender = forms.ChoiceField(widget=forms.RadioSelect(), 
+                 choices=Student_Data.GENDER_CHOICES, help_text="Gender")
+    Branch=forms.CharField(max_length=50)
+    User=forms.CharField(max_length=50)
+    Password = forms.CharField(
+        label='Enter your password',
+        widget=forms.PasswordInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'your password'
+            }
+
+        )
+
+    )
+    Re_Enter_Password = forms.CharField(
+        label='Re_Enter_Password',
+        widget=forms.PasswordInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Re_enter_password'
+            }
+
+        )
+
+    )
+
+class LoginForm(forms.Form):
+    User=forms.CharField(
+        label='Enter user name',
+        widget=forms.TextInput(
+            attrs={
+                'class':'form-control',
+                'placeholder':'Enter username'
+            }
+        )
+    )
+    Password = forms.CharField(
+        label='Enter your password',
+        widget=forms.PasswordInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'your password'
+            }
+
+        )
+
+    )
+
+class SearchForm(forms.Form):
+    Book_Name=forms.CharField(max_length=20)
+
+3.admin.py
+==========
+from django.contrib import admin
+from .models import BookDetails
+
+class BookAdmin(admin.ModelAdmin):
+    list_dispaly=('Id','Book_Name','Author_Name')
+
+admin.site.register(BookDetails,BookAdmin)
+
+
+4.views.py:
+=========
+
+from django.shortcuts import render,redirect
+from django.http import HttpResponse
+from .models import Student_Data,BookDetails
+from .forms import StudentForm,LoginForm,SearchForm,BooksForm
+from django.views.generic import ListView
+from django.core.exceptions import ValidationError
+from django.db.models import Q
+
+
+
+def Regview(request):
+    if request.method=='POST':
+        form=StudentForm(request.POST)
+        if form.is_valid():
+            Id=request.POST.get('Id','')
+            Student_Name=request.POST.get('Studen_Name','')
+            Gender=form.cleaned_data.get('Gender','')
+            Branch=form.cleaned_data.get('Branch','')
+            User = request.POST.get('User', '')
+            Password = request.POST.get('Password', '')
+           
+            data=Student_Data(
+                Id=Id,
+                Student_Name=Student_Name,
+                Gender=Gender,
+                Branch=Branch,
+                User=User,
+                Password=Password
+            )
+            data.save()
+            form=StudentForm()
+            return render(request,'managementapp/Studentreg.html',{'sreg':form})
+    else:
+        form=StudentForm()
+        return render(request,'managementapp/Studentreg.html',{'sreg':form})
+
+def BookView(request):
+    if request.method=='POST':
+        form=BooksForm(request.POST)
+        if form.is_valid():
+            Id=request.POST.get('Id','')
+            Book_Name=request.POST.get('Book_Name','')
+            Author_Name=form.cleaned_data.get('Author_Name','')
+            
+            data=BookDetails(
+                Id=Id,
+                Book_Name=Book_Name,
+                Author_Name=Author_Name
+                )
+            data.save()
+            form=BooksForm()
+            return render(request,'managementapp/Bookreg.html',{'Bookreg':form})
+    else:
+        form=BooksForm()
+        return render(request,'managementapp/Bookreg.html',{'Bookreg':form})
+
+def BooksListView(request):
+    model=BookDetails
+    k=SearchForm()
+    #success_url=reverse_lazy('Emp')
+    #default=model+Detail.html
+    wholedata=BookDetails.objects.all()
+    # Template_name='managementapp/bookdetails_list.html'
+    return render(request,'managementapp/bookdetails_list.html',{'data':wholedata,'k':k})
+
+
+
+def Loginview(request):
+    
+    if request.method=='POST':
+        lform=LoginForm(request.POST)
+        if lform.is_valid():
+            User=request.POST.get('User','')
+            Password=request.POST.get('Password','')
+
+            user1=Student_Data.objects.filter(User=User)
+            pwd1=Student_Data.objects.filter(Password=Password)
+            if user1 and pwd1:
+                return redirect(BooksListView)
+
+                # data=BookDetails.objects.all()
+                # return render(request,"managementapp/bookdetails_list.html",{"Books":data})
+            else:
+                return HttpResponse('<h1>invaluid</h1>')
+        else:
+            lform=LoginForm()
+            return render(request,'managementapp/login.html',{'lform':lform})
+    #             return render(request,'managementapp/login.html',{'lform':lform})
+    #     else:
+    #         logform=LoginForm()
+    #         return render(request,'managementapp/login.html',{'lform':lform})
+    else:
+        lform=LoginForm()
+        return render(request,'managementapp/login.html', {'lform':lform})
+
+
+
+def Home_View(request):
+    return render(request,'managementapp/home.html')
+
+
+
+def Search_View(request):
+    if request.method=='POST':
+        sf=SearchForm(request.POST)
+        if sf.is_valid():
+            book=request.POST['Book_Name']
+            #wholedata=BookDetails.objects.all()
+            
+            a=BookDetails.objects.all(BookDetails.objects.filter(Book_Name__icontains=book))
+            # filter(Q(Book_Name__icontains=book))
+            return render(request,'managementapp/relatedbooks.html',{'a':a})
+        else:
+            form=SearchForm()
+            return render(request,'managementapp/bookdetails_list.html',{'k':form})
+    else:
+        form=SearchForm()
+        return render(request,'managementapp/bookdetails_list.html',{'k':form})
+  
+
+
+5.home.html
+==========
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home page</title>
+<style>
+    ul{
+        list-style-type: none;
+        float:right
+    }
+
+    ul li{
+        display:inline-block;
+    }
+
+    ul li a{
+        padding:5px 20px;
+        text-decoration:none;
+        font-size: 20px;
+        border:1px solid white;
+        color:#fff;
+    }
+    ul li a:hover{
+        background-color: #fff;
+        color:#000;
+    }
+    .ttl1{
+        position: absolute;
+        top:10%;
+        left:40%;
+        color: white;
+        font-size: 25px;
+        font-family: Arial;
+        text-align:center;
+    }
+    .f1{
+        position: absolute;
+        top:30%;
+        left:10%;
+        color:#fff;
+        font-size:25px;
+        text-decoration: underline;
+    }
+     .d1{
+        position: absolute;
+        top:40%;
+        left:10%;
+        color:#fff;
+        font-size:25px;
+        text-decoration: underline;
+    }
+     .aa{
+         right:5%;
+         top:30%;
+         position: absolute;
+         text-decoration: none;
+         font-size:30px;
+         font-family: "Agency FB";
+         color:aquamarine;
+
+     }
+    .ab{
+         right:5%;
+         top:30%;
+         position: absolute;
+         text-decoration: none;
+         font-size:30px;
+         font-family: "Agency FB";
+         color:aquamarine;
+
+     }
+    body{
+        background-image:url("/home/pnv/images/library-home-wml-650x250.jpg");
+        background-repeat:no-repeat;
+        background-size:cover;
+        background-color:blueviolet;
+    }
+    header.ul{
+        background-color:greenyellow;
+    }
+</style>
+</head>
+<body >
+<header>
+    <ul>
+
+        <li><a href="/home/">Home</a></li>
+        <li><a href="/Services/">Services</a></li>
+        <li><a href="/Contact/">Contact</a></li>
+        <li><a href="/Feedback/">Feedback</a></li>
+        <li><a href="/Gallery">Gallery</a></li>
+    </ul>
+</header>
+<div>
+    <h1 class="ttl1">Welcome To library Management </h1>
+
+    <nav class="navbar navbar-inverse">
+            <div class="container-fluid">
+              <div class="navbar-header">
+                <a class="navbar-brand" href="#"></a>
+              </div>
+              <ul class="nav navbar-nav navbar-right">
+                <li><a href="/regform/"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
+                <li><a href="/login/"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+              </ul>
+            </div>
+          </nav> 
+</div>
+
+</body>
+</html>
+
+
+6.Studentreg.html
+=================
+<<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration Form</title>
+    <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+        h2{
+            text-align: center;
+            text-decoration-color: green;
+            background: cadetblue;
+            margin:20px 500px 20px 500px;
+
+        }
+        body{
+            background-color:url("/home/pnv/images/library2.jpg");
+        }
+        form{
+            border: 2px dashed blue;
+            padding:20px;
+            border-color:pink;
+            border: 10px;
+            border-radius: 10px;
+            margin: 10px;
+        }
+        header.ul.h1{
+            right:100%;
+            top:20%;
+            border-left: 10px;
+            color:lightseagreen
+        }
+    </style>
+</head>
+<body>
+        <header>
+            <div class="container">
+                                <div class="row">
+                                    <div class="col-md-offset-10 col-md-2">
+                                            <h1><a href="/login/" align="left">Login</a></h1> 
+                                    </div>
+                                </div>
+                            </div>
+        </header>
+    <h2>Registration and Login Form</h2>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-offset-4 col-md-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ sreg.as_p }}
+                    <br>
+                    <center>
+                    <input type="submit" value="submit" class="btn btn-success">
+                    <input type="Reset" value="Reset" class="btn btn-danger"></center>s
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+
+
+8.login.html
+============
+<body>
+    <h2> Login Form</h2>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-offset-4 col-md-4">
+                <form method="POST" >
+                    {% csrf_token %}
+                    {{ lform.as_p }}
+                    <br>
+                    <center>
+                    <input type="submit" value="submit" class="btn btn-success">
+                        <input type="Reset" value="Reset" class="btn btn-danger">
+                    </center>
+                    <center>
+                        <a href="/regform/">New user</a><br>
+                        <a href="/home/"> Home page</a>
+                    </center>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+9.Bookingreg.html
+=================<<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration Form</title>
+    <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+        h2{
+            text-align: center;
+            text-decoration-color: green;
+            background: cadetblue;
+            margin:20px 500px 20px 500px;
+
+        }
+        body{
+            background-color:url("/home/pnv/images/library2.jpg");
+        }
+        form{
+            border: 2px dashed blue;
+            padding:20px;
+            border-color:pink;
+            border: 10px;
+            border-radius: 10px;
+            margin: 10px;
+        }
+        header.ul.h1{
+            right:100%;
+            top:20%;
+            border-left: 10px;
+            color:lightseagreen
+        }
+    </style>
+</head>
+<body>
+        <header>
+            <div class="container">
+                                <div class="row">
+                                    <div class="col-md-offset-10 col-md-2">
+                                            <h1><a href="/login" align="left">Login</a></h1> 
+                                    </div>
+                                </div>
+                            </div>
+        </header>
+    <h2>Books Details Enter Form</h2>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-offset-4 col-md-4">
+                <table>                <form method="POST">
+                    {% csrf_token %}
+                    {{ Bookreg.as_p }}
+                    <br>
+                    <center>
+                    <input type="submit" value="submit" class="btn btn-success">
+                    <input type="Reset" value="Reset" class="btn btn-danger"></center>s
+                </form>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+
+10.Bookdetails.html
+====================
+<body>
+   
+
+    <h2 align="center"> Book Details list</h2>
+    <h3 align='center'>----------------------------------------</h3>
+    <center><form method="POST" action='/search/'>
+            {% csrf_token %}
+            {{k.as_p}}
+            <a input type="submit" name="Book_name" value="search"> </a>> 
+    </form>
+    <table border=2px align='center'>
+        <h1><tr><th>Id</th>
+            <th>Book_Name</th>
+            <th>Author_Name</th>
+        </tr>
+        {% for book in data %}
+        <tr><td>{{book.id}}</td>
+            <td>{{book.Book_Name}}</td>
+            <td>{{book.Author_Name}}</td>
+        </tr>
+        </h1>
+       
+        {% endfor %}
+    </table>
+    </center>
+    </body>
+</html>
+
+
+11.relatedbooks.html
+=====================
+<!-- <h1 align="center">Related Books are</h1>
+</h1><h3 align='center'>-----------------------------------------------------</h3> -->
+<select>
+<center><h2>select your option</h2>
+    {% for i in a %}
+    <li>
+    <option>{{i}}</option>
+    </li>
+{% endfor %}
+</center>
+</select>
+<!-- 
+
+    <a href="/home" align="center"><h2>Home</h2></a> 
+</body>
+</html> -->
+
+

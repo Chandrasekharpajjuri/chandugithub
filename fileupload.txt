@@ -1,0 +1,109 @@
+1.no modifications in settings.py
+2.
+  from django.db import models
+  class Book(models.Model):
+    title = models.CharField(max_length=100)
+    author = models.CharField(max_length=100)
+    pdf = models.FileField(upload_to='documents/')
+    cover = models.ImageField(upload_to='images/', null=True, blank=True)
+
+3.from django import forms
+
+  from .models import Book
+
+
+  class BookForm(forms.ModelForm):
+    class Meta:
+        model = Book
+        fields = ('title', 'author', 'pdf', 'cover')
+
+4.views.py file
+
+from django.shortcuts import render
+
+from .forms import BookForm
+from .models import Book
+
+def SaveProfile(request):
+   #aved = False
+   form=BookForm()
+   if request.method == "POST":
+      #Get the posted form
+      form = BookForm(request.POST, request.FILES)
+      if form.is_valid():
+         form.save()
+         form=BookForm()
+         return render(request,"fileuploadapp/upload.html",{'form':form,})#"msg":"upload sucessfully"})
+   else:
+      form=BookForm()
+      msg="file upload successfully"
+      return render(request,"fileuploadapp/upload.html",{'form':form})#'mag':msg})
+
+def retrive(request):
+   data=Book.objects.all()
+   
+   return render(request,'fileuploadapp/retrive.html',{'data':data})
+		
+
+5.templates   upload.html
+
+
+  <div class="container">
+    <div class="row">
+            <div class="col-md-offset-4 col-md-4">
+                {{msg}}
+            <form method='POST' enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {{ form.as_p }}
+                <!-- <input type='' value="http://" name="Search"> -->
+                <center><input type='submit' value='submit' class="btn btn-success">&nbsp&nbsp&nbsp
+                <input type='reset' value='Reset' class="btn btn-danger"></center>
+            </form>
+          
+    </div>
+</div>
+</body>
+</html>
+   
+
+
+6.retrive.html
+
+  table>
+    <thead>
+        <td>title</td>
+        <td>author</td>
+        <td>document</td>
+        <td>images</td>
+    </thead>
+    <tbody>
+        {% for i in data %}
+        <tr>
+            <td>{{i.title}}</td>
+            <td>{{i.author}}</td>
+            <td><a href="{{i.pdf}}">{{i.pdf}}</td>
+
+            <td>{{i.cover}}</td>
+        </tr>
+        {%endfor%}
+    </tbody>
+</table>
+</body>
+</html>
+
+7.urls.py
+
+
+from django.contrib import admin
+from django.urls import path
+from fileuploadapp import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('upload/',views.SaveProfile),
+    path('retrive/',views.retrive),
+]
+   
+
+
