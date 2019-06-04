@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+{%extends 'cbvs_mongo_app/base.html'%}
+{%block body_block%}
+{%for i range n %}
+<h1>Dummy information</h1>
+    <h2>{{f.name()}}</h2>
+    <h2>{{f.city()}}</h2>
+    <h2>{{f.email()}}</h2>
+    <h2>{{f.address()}}</h2>
+    <h2>{{f.phone_number}}</h2>
+{%endfor%}
+{%endblock%}

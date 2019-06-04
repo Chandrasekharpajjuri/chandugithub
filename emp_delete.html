@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+{% extends 'cbvs_mongo_app/base.html'%}
+{% block body_block% }
+<h1>Are you want to delete the {{emp.Ename}}</h1>
+<form method="POST">
+    {%csrt_token%}
+    <input type='submit' value='Delete' class='btn btn-lg btn-danger'>&nbsp&nbsp&nbsp;
+    <a href="/{{emp.id}}" class='btn btn-lg btn-success'>cancel</a>
+</form>
+{%endblock%}
+
+<!-- <!DOCTYPE html>
+{%extends 'base.html'%}
+{%block boby_block%}
+<h1>R U SURE TO DELETE</h1>
+<form method="post">
+    <input type="submit" value="DELETE">
+
+    <a href="/delete/{{company.id}}">CANCEL</a>
+</form>
+{%endbkucj%} -->

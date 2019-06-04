@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+{% extends 'cbvs_mongo_app/base.html' %}
+{%block body_block %}
+<h1>Emp data insertion form</h1>
+<form method='POST'>
+    {%csrf_token%}
+    {{abc.as_p}}
+    
+    <input type='submit' calss='btn btn-lg btn-primary' value='Insert/update Data'>
+</form>
+{%endblock%}

@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+{% include 'cbvs_mongo_app/base.html'%}
+{%block body_block%}
+<!-- <h1 align='center'>Employee Information</h1>
+
+
+<h3 align='center'>-----------------------------------------------------</h3>
+<table border=2px align='center'>
+    <tr><th>Id</th>
+        <th>Ename</th>
+        <th>Subject</th>
+        <th>Sal</th>
+        <th>Date_of_birth</th>
+        <th>Email</th>
+        <th>Gender</th>
+        <th>Distric</th>
+        <th>Search</th>
+        <th>File</th>
+        <th>Image</th>
+        <th>Passed out</th>
+    </tr>
+    {% for emp in curdmodel1_list %}
+    <tr><td>{{emp.id}}</td>
+        <td>{{emp.Select}}.  {{emp.Ename}}</td>
+        <td>{{emp.Subject}}</td>
+        <td>{{emp.Sal}}</td>
+        <td>{{emp.Date_of_birth}}</td>
+        <td>{{emp.Email}}</td>
+        <td>{{emp.Gender}}</td>
+        <td>{{emp.Distric}}</td>
+        <td>{{emp.Search}}</td>
+        <td>{{emp.File}}</td>
+        <td>{{emp.User_Image}}</td>
+        <td>{{emp.Passed}}
+            
+        </td>
+    </tr>
+
+   
+    {% endfor %}
+</table> -->
+
+<h1>List of the all Employee</h1>
+{% for emp in Curdmodel1_list %}
+<h2><a href="/{{ Emp.id }}">{{ emp.Ename}}</a></h2>
+{%endfor%}
+<h2><a href="/create" class="btn btn-lg btn-primary">Add New Employee</a></h2>
+{%endblock%}

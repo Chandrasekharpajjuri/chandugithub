@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+{%extends 'cbvs_mongo_app/base.html'%}
+{%block body_block%}
+<h1>{{Curdmodel1.Ename}} Information</h1>
+<h2>{{emp.id}}</h2>
+<h2>{{emp.Select}}.  {{emp.Ename}}</h2>
+    <h2>{{emp.Subject}}</h2>
+    <h2>{{emp.Sal}}</h2>
+    <h2>{{emp.Date_of_birth}}</h2>
+    <h2>{{emp.Email}}</h2>
+    <td>{{emp.Gender}}</h2>
+    <h2>{{emp.Distric}}</h2>
+    <h2>{{emp.Search}}</h2>
+    <h2>{{emp.File}}</h2>
+    <h2>{{emp.User_Image}}</h2>
+    <h2>{{emp.Passed}}</h2>
+<a href='update/{{emp.id}}' class='btn btn-lg btb-warning'>Update</a>
+<a herf='delete/{{emp.id}}' class='btn btn-lg btn-danger'>Delete</a>
+{%endblock%}
+
